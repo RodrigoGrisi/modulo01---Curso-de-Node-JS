@@ -18,19 +18,42 @@ server.use(express.json());
 
 const cursos = ["Node JS", "Javascript", "React Native", "PHP", "Laravel"];
 
+server.use((req, res, next) => {
+  console.log(`URL Chamada: ${req.url}`);
+  return next();
+});
+
+function checkCurso(req, res, next) {
+  if (!req.body.name) {
+    return res.status(400).json({ error: "Nome do curso é obrigatorio" });
+  }
+
+  return next();
+}
+
+function checkIndexCurso(req, res, next) {
+  const curso = curso[req.params.index];
+
+  if (!curso) {
+    return res.status(400).json({ error: "O curso não existe" });
+  }
+
+  return next();
+}
+
 // READ
 server.get("/cursos", (req, res) => {
   return res.json(cursos);
 });
 
-server.get("/cursos/:index", (req, res) => {
+server.get("/cursos/:index", checkIndexCurso, (req, res) => {
   const { index } = req.params;
 
   return res.json(cursos[index]);
 });
 
 // POST
-server.post("/cursos", (req, res) => {
+server.post("/cursos", checkCurso, (req, res) => {
   const { name } = req.body;
 
   cursos.push(name);
@@ -39,7 +62,7 @@ server.post("/cursos", (req, res) => {
 });
 
 // UPDATE
-server.put("/cursos/:index", (req, res) => {
+server.put("/cursos/:index", checkCurso, checkIndexCurso, (req, res) => {
   const { index } = req.params;
   const { name } = req.body;
 
@@ -49,7 +72,7 @@ server.put("/cursos/:index", (req, res) => {
 });
 
 // DELETE
-server.delete("/cursos/:index", (req, res) => {
+server.delete("/cursos/:index", checkIndexCurso, (req, res) => {
   const { index } = req.params;
 
   cursos.splice(index, 1);
